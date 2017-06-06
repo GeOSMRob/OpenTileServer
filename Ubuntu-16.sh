@@ -16,7 +16,7 @@ OSM_STYLE_XML=''
 OSM_USER='tile';			#system user for renderd and db
 OSM_USER_PASS=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32)
 OSM_PG_PASS=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32);
-OSM_DB='gis';				#osm database name
+OSM_DB='osm_gis';				#osm database name
 VHOST=$(hostname -f)
  
 NP=$(grep -c 'model name' /proc/cpuinfo)
@@ -116,8 +116,17 @@ function style_osm_carto(){
 		./scripts/get-shapefiles.py
 		rm data/*.zip data/world_boundaries-spherical.tgz
 	fi
- 
-	/usr/local/lib/node_modules/carto/bin/carto project.mml >osm-carto.xml
+
+	# Compiling the stylesheet
+	if [ ! -f /usr/local/share/maps/style/osm-bright-master/openstreetmap-carto-3.0.x/OSMBright.xml ]; then
+		cd /usr/local/share/maps/style/osm-bright-master/openstreetmap-carto-3.0.x/
+		cp project.mml project.mml.BAK
+
+		sed -i '/dbname/s/"gis"/"${OSM_DB}"/g' project.mml #set dbname: "gis" to dbname: "${OSM_DB}
+
+		/usr/local/lib/node_modules/carto/bin/carto project.mml >osm-carto.xml
+
+	fi
  
 	osm2pgsql_OPTS+=' --style /usr/local/share/maps/style/openstreetmap-carto-3.0.x/openstreetmap-carto.style'
 	OSM_STYLE_XML='/usr/local/share/maps/style/openstreetmap-carto-3.0.x/osm-carto.xml'
@@ -161,6 +170,13 @@ CMD_EOF
 }
  
 #Steps
+#0
+
+#POSTGRES_VERSION="$(echo find / -wholename '*/bin/postgres' 2>&- | xargs -i xargs -t '{}' -V)"
+
+#add-apt-repository "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
+#wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
 #1 Update ATP and isntall needed packages
 apt-get clean
 apt-get update
@@ -172,7 +188,7 @@ apt-get -y install	libboost-all-dev subversion git-core tar unzip wget bzip2 \
 					libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev \
 					ttf-unifont fonts-arphic-ukai fonts-arphic-uming fonts-thai-tlwg \
 					lua5.1 liblua5.1-0-dev libgeotiff-epsg node-carto \
-					postgresql postgresql-contrib postgis postgresql-9.5-postgis-2.2 \
+					postgresql postgresql-contrib postgis postgresql-9.6-postgis-2.3 \
 					php libapache2-mod-php php-xml
  
 PG_VER=$(pg_config | grep '^VERSION' | cut -f4 -d' ' | cut -f1,2 -d.)
