@@ -118,8 +118,8 @@ function style_osm_carto(){
 	fi
 
 	# Compiling the stylesheet
-	if [ ! -f /usr/local/share/maps/style/osm-bright-master/openstreetmap-carto-3.0.x/OSMBright.xml ]; then
-		cd /usr/local/share/maps/style/osm-bright-master/openstreetmap-carto-3.0.x/
+	if [ ! -f /usr/local/share/maps/style/openstreetmap-carto-3.0.x/OSMBright.xml ]; then
+		cd /usr/local/share/maps/style/openstreetmap-carto-3.0.x/
 		cp project.mml project.mml.BAK
 
 		sed -i '/dbname/s/"gis"/"${OSM_DB}"/g' project.mml #set dbname: "gis" to dbname: "${OSM_DB}
