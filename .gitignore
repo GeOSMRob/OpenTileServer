@@ -1,0 +1,11 @@
+###
+# This Dir ist not included
+###
+archiv/
+mapproxy/
+openstreetmap-carto-3.0.x/
+
+# Generated at runtime by Python.
+*.pyc
+**/*.pyc
+/imposm3/

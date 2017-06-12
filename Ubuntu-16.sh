@@ -103,7 +103,8 @@ function install_npm_carto(){
 function style_osm_carto(){
  
 	apt-get -y install ttf-dejavu fonts-droid-fallback ttf-unifont fonts-sipa-arundina fonts-sil-padauk fonts-khmeros fonts-indic fonts-taml-tscu fonts-lohit-knda fonts-knda
- 
+
+    #1. Downloading Opentreetmap-carto-Style
 	cd /usr/local/share/maps/style
 	if [ ! -d openstreetmap-carto-3.0.x ]; then
 		wget https://github.com/gravitystorm/openstreetmap-carto/archive/v3.0.x.zip
@@ -111,13 +112,14 @@ function style_osm_carto(){
 		rm v3.0.x.zip
 	fi
 	cd openstreetmap-carto-3.0.x/
- 
+
+    #2. Downloading world_boundaries-spherical
 	if [ $(find data/ -type f -name "*.shp" 2>/dev/null | wc -l) -ne 6 ]; then
 		./scripts/get-shapefiles.py
 		rm data/*.zip data/world_boundaries-spherical.tgz
 	fi
 
-	# Compiling the stylesheet
+	# Compiling the stylesheet with OSM-DB-params, if exits XXX.xml
 	if [ ! -f /usr/local/share/maps/style/openstreetmap-carto-3.0.x/OSMBright.xml ]; then
 		cd /usr/local/share/maps/style/openstreetmap-carto-3.0.x/
 		cp project.mml project.mml.BAK
@@ -136,9 +138,11 @@ function enable_osm_updates(){
 	apt-get -y install osmosis
  
 	export WORKDIR_OSM=/home/${OSM_USER}/.osmosis
- 
+
+    #1. Create WorkingDirectory to /etc/environment
 	if [ $(grep -c 'WORKDIR_OSM' /etc/environment) -eq 0 ]; then
-		echo 'export WORKDIR_OSM=/home/tile/.osmosis' >> /etc/environment
+	    #echo 'export WORKDIR_OSM=/home/tile/.osmosis' >> /etc/environment
+		echo 'export "${WORKDIR_OSM}"' >> /etc/environment
 		mkdir -p $WORKDIR_OSM
 		osmosis --read-replication-interval-init workingDirectory=${WORKDIR_OSM}
 	fi
@@ -170,6 +174,7 @@ CMD_EOF
 }
  
 #Steps
+#TO-DO Create IF Exits postgres 9.6 or postgis 2.3
 #0
 
 #POSTGRES_VERSION="$(echo find / -wholename '*/bin/postgres' 2>&- | xargs -i xargs -t '{}' -V)"
