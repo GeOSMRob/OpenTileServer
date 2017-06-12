@@ -9,3 +9,6 @@ openstreetmap-carto-3.0.x/
 *.pyc
 **/*.pyc
 /imposm3/
+
+# Idea-Files
+.idea/
