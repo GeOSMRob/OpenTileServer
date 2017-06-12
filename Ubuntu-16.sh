@@ -142,7 +142,7 @@ function enable_osm_updates(){
     #1. Create WorkingDirectory to /etc/environment
 	if [ $(grep -c 'WORKDIR_OSM' /etc/environment) -eq 0 ]; then
 	    #echo 'export WORKDIR_OSM=/home/tile/.osmosis' >> /etc/environment
-		echo 'export "${WORKDIR_OSM}"' >> /etc/environment
+		echo "export WORKDIR_OSM=${WORKDIR_OSM}" >> /etc/environment
 		mkdir -p $WORKDIR_OSM
 		osmosis --read-replication-interval-init workingDirectory=${WORKDIR_OSM}
 	fi
