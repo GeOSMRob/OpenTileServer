@@ -158,7 +158,7 @@ function enable_osm_updates(){
  
 	#4. Add step 4 to cron, to make it run every day
 	if [ ! -f /etc/cron.daily/osm-update.sh ]; then
-		echo >/etc/cron.daily/osm-update.sh <<CMD_EOF
+		cat >/etc/cron.daily/osm-update.sh <<CMD_EOF
 #!/bin/bash
 export WORKDIR_OSM=/home/${OSM_USER}/.osmosis
 export PGPASSWORD="${OSM_PG_PASS}"
@@ -317,7 +317,7 @@ fi
 #Download html pages
 rm -f /var/www/html/index.html
 for p in openlayers-example leaflet-example index; do
-	wget -P/var/www/html/ http://cdn.acugis.com/osm-assets/htmls/${p}.html
+	wget --no-check-certificate -P/var/www/html/ https://cdn.acugis.com/osm-assets/htmls/${p}.html
 done
  
 sed -i.save "s|localhost|$(hostname -I | tr -d ' ')|" /var/www/html/leaflet-example.html
