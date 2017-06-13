@@ -11,26 +11,30 @@ WEB_MODE="${1}"         #web,ssl
 OSM_STYLE="${2}"	#bright, carto
 PBF_URL="${3}";	#get URL from first parameter, http://download.geofabrik.de/europe/germany-latest.osm.pbf
 OSM_STYLE_XML=''
- 
+
+#Use Postgresql 9.6 -> yes=1 or no=0
+USE_PG_VERSION=1;
+PG_VER='9.6';
+
 #User for DB and rednerd
 OSM_USER='tile';			#system user for renderd and db
 OSM_USER_PASS=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32)
 OSM_PG_PASS=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c32);
 OSM_DB='osm_gis';				#osm database name
 VHOST=$(hostname -f)
- 
+
 NP=$(grep -c 'model name' /proc/cpuinfo)
 osm2pgsql_OPTS="--slim -d ${OSM_DB} --number-processes ${NP} --hstore"
- 
+
 #Check input parameters
 if [ -z "${PBF_URL}" -o \
 	 $(echo "${OSM_STYLE}" | grep -c '[briht|carto]') -eq 0 -o \
 	 $(echo "${WEB_MODE}"  | grep -c '[web|ssl]')	  -eq 0 ]; then
 	echo "Usage: $0 [web|ssl] [bright|carto] pbf_url"; exit 1;
 fi
- 
+
 touch /root/auth.txt
- 
+
 function style_osm_bright(){
 	cd /usr/local/share/maps/style
 	if [ ! -d 'osm-bright-master' ]; then
@@ -39,7 +43,7 @@ function style_osm_bright(){
 		mkdir -p osm-bright-master/shp
 		rm master.zip
 	fi
- 
+
 	for shp in 'land-polygons-split-3857' 'simplified-land-polygons-complete-3857'; do
 		if [ ! -d "osm-bright-master/shp/${shp}" ]; then
 			wget http://data.openstreetmapdata.com/${shp}.zip
@@ -51,7 +55,7 @@ function style_osm_bright(){
 			popd
 		fi
 	done
- 
+
 	if [ ! -d 'osm-bright-master/shp/ne_10m_populated_places' ]; then
 		wget http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_populated_places.zip
 		unzip ne_10m_populated_places.zip
@@ -59,8 +63,8 @@ function style_osm_bright(){
 		rm ne_10m_populated_places.zip
 		mv ne_10m_populated_places.* osm-bright-master/shp/ne_10m_populated_places/
 	fi
- 
- 
+
+
 	#9 Configuring OSM Bright
 	if [ $(grep -c '.zip' /usr/local/share/maps/style/osm-bright-master/osm-bright/osm-bright.osm2pgsql.mml) -ne 0 ]; then	#if we have zip in mml
 		cd /usr/local/share/maps/style/osm-bright-master
@@ -68,7 +72,7 @@ function style_osm_bright(){
 		sed -i.save 's|.*simplified-land-polygons-complete-3857.zip",|"file":"/usr/local/share/maps/style/osm-bright-master/shp/simplified-land-polygons-complete-3857/simplified_land_polygons.shp",\n"type": "shape",|' osm-bright/osm-bright.osm2pgsql.mml
 		sed -i.save 's|.*land-polygons-split-3857.zip"|"file":"/usr/local/share/maps/style/osm-bright-master/shp/land-polygons-split-3857/land_polygons.shp",\n"type":"shape"|' osm-bright/osm-bright.osm2pgsql.mml
 		sed -i.save 's|.*10m-populated-places-simple.zip"|"file":"/usr/local/share/maps/style/osm-bright-master/shp/ne_10m_populated_places/ne_10m_populated_places.shp",\n"type": "shape"|' osm-bright/osm-bright.osm2pgsql.mml
- 
+
 		sed -i.save '/name":[ \t]*"ne_places"/a"srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"' osm-bright/osm-bright.osm2pgsql.mml
 		#Delete
 		#"srs": "",
@@ -78,7 +82,7 @@ function style_osm_bright(){
 		let LINE_TO=LINE_FROM+1
 		sed -i.save "${LINE_FROM},${LINE_TO}d" osm-bright/osm-bright.osm2pgsql.mml
 	fi
- 
+
 	#10 Compiling the stylesheet
 	if [ ! -f /usr/local/share/maps/style/osm-bright-master/OSMBright/OSMBright.xml ]; then
 		cd /usr/local/share/maps/style/osm-bright-master
@@ -92,16 +96,16 @@ function style_osm_bright(){
 	fi
 	OSM_STYLE_XML='/usr/local/share/maps/style/OSMBright/OSMBright.xml'
 }
- 
+
 function install_npm_carto(){
 	apt-get -y install npm nodejs nodejs-legacy
 	#Latest 0.17.2 doesn't install!
 	npm install -g carto@0.16.3
 	ln -sf /usr/local/lib/node_modules/carto/bin/carto /usr/local/bin/carto
 }
- 
+
 function style_osm_carto(){
- 
+
 	apt-get -y install ttf-dejavu fonts-droid-fallback ttf-unifont fonts-sipa-arundina fonts-sil-padauk fonts-khmeros fonts-indic fonts-taml-tscu fonts-lohit-knda fonts-knda
 
     #1. Downloading Opentreetmap-carto-Style
@@ -129,14 +133,14 @@ function style_osm_carto(){
 		/usr/local/lib/node_modules/carto/bin/carto project.mml >osm-carto.xml
 
 	fi
- 
+
 	osm2pgsql_OPTS+=' --style /usr/local/share/maps/style/openstreetmap-carto-3.0.x/openstreetmap-carto.style'
 	OSM_STYLE_XML='/usr/local/share/maps/style/openstreetmap-carto-3.0.x/osm-carto.xml'
 }
- 
+
 function enable_osm_updates(){
 	apt-get -y install osmosis
- 
+
 	export WORKDIR_OSM=/home/${OSM_USER}/.osmosis
 
     #1. Create WorkingDirectory to /etc/environment
@@ -146,20 +150,20 @@ function enable_osm_updates(){
 		mkdir -p $WORKDIR_OSM
 		osmosis --read-replication-interval-init workingDirectory=${WORKDIR_OSM}
 	fi
- 
+
 	#2. Generating state.txt
 	if [ ! -f ${WORKDIR_OSM}/state.txt ]; then
 		#NOTE: If you want hourly updates set stream=hourly
 		STATE_URL="http://osm.personalwerk.de/replicate-sequences/?Y=$(date '+%Y')&m=$(date '+%m')&d=$(date '+%d')&H=$(date '+%H')&i=$(date '+%M')&s=$(date '+%S')&stream=day"
 		wget -O${WORKDIR_OSM}/state.txt ${STATE_URL}
 	fi
- 
+
 	#3. Fix configuration.txt
 	#Get the URL from http://download.geofabrik.de/europe/germany.html
 	#example PBF_URL='http://download.geofabrik.de/europe/germany-latest.osm.pbf'
 	UPDATE_URL="$(echo ${PBF_URL} | sed 's/latest.osm.pbf/updates/')"
 	sed -i.save "s|#\?baseUrl=.*|baseUrl=${UPDATE_URL}|" ${WORKDIR_OSM}/configuration.txt
- 
+
 	#4. Add step 4 to cron, to make it run every day
 	if [ ! -f /etc/cron.daily/osm-update.sh ]; then
 		cat >/etc/cron.daily/osm-update.sh <<CMD_EOF
@@ -172,15 +176,46 @@ CMD_EOF
 		chmod +x /etc/cron.daily/osm-update.sh
 	fi
 }
- 
+
 #Steps
-#TO-DO Create IF Exits postgres 9.6 or postgis 2.3
-#0
+#Create IF Exits postgres 9.6 or postgis 2.3
 
-#POSTGRES_VERSION="$(echo find / -wholename '*/bin/postgres' 2>&- | xargs -i xargs -t '{}' -V)"
+echo "new PG_Version: ${USE_PG_VERSION}"
 
-#add-apt-repository "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
-#wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+#PG_VER=locate bin/postgres | egrep -o '[0-9]{1,}\.[0-9]{1,}'
+
+if [ ${USE_PG_VERSION} =  '1' ]; then
+
+	echo 'Check PG install'
+
+	if [ $(dpkg-query -W -f='${Status}' postgresql 2>/dev/null | grep -c "ok installed") -eq 0 ];then
+
+		echo "add Postgresql 9.6"
+		echo "$PG_VER"
+
+		#add-apt-repository "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
+
+		#wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+	else
+
+		echo 'Check PG_Version'
+
+		#echo "$(locate bin/postgres | egrep -o '[0-9]{1,}\.[0-9]{1,}')"
+		PG_VER=$(dpkg -s postgresql | grep '^Version: ' | cut -f1 -d '+' | egrep -o '[0-9]{1,}\.[0-9]{1,}')
+		echo "$PG_VER"
+
+		if [[ $PG_VER != '9.6' || -z $PG_VER && ${PG_VER+x} ]]; then
+
+		    echo 'Please install Postgresql'
+		fi
+
+	fi
+
+	echo "finish"
+fi
+
+echo "Install needed packages"
 
 #1 Update ATP and isntall needed packages
 apt-get clean
@@ -195,9 +230,9 @@ apt-get -y install	libboost-all-dev subversion git-core tar unzip wget bzip2 \
 					lua5.1 liblua5.1-0-dev libgeotiff-epsg node-carto \
 					postgresql postgresql-contrib postgis postgresql-9.6-postgis-2.3 \
 					php libapache2-mod-php php-xml
- 
+
 PG_VER=$(pg_config | grep '^VERSION' | cut -f4 -d' ' | cut -f1,2 -d.)
- 
+
 #3 Create system user
 if [ $(grep -c ${OSM_USER} /etc/passwd) -eq 0 ]; then	#if we don't have the OSM user
 	useradd -m ${OSM_USER}

@@ -24,6 +24,12 @@ See https://github.com/AcuGIS/opentileserver/issues/4
 
 Step 4: Run the script
 
+Step 5 Optional: 
+
+Testing Error LOG -> Logging PG-DB and Mapnik.xml
+
+<code>sudo -u USER rendered -f -c /usr/local/etc/renderd.conf</code>
+
 ## Script usage:
 
 <code>./opentileserver.sh  [web|ssl] [bright|carto] pbf_url</code>
