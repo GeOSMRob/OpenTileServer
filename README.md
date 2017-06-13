@@ -6,6 +6,8 @@ Only for use on a clean Ubuntu 14 or Ubuntu 16 install!!
 
 NOTE: Ubuntu 14 uses osm2pgsql 0.82 and Ubuntu 16 uses osm2pgsql 0.88. The versions handle --slim differently. Currently the reload script for Ubuntu 16 does NOT work to add additional PBFs. It can be used to drop existing data and reload new data, but not to append data.
 
+NOTE: On Ubuntu 16 uses Postgres-9.6 and Postgis-2.3
+
 Before proceeding, see <a href="opentileserver.org" target="blank"> opentileserver.org </a> for limitations, etc..
 
 Step 1: Get opentileserver.sh script from GitHub
