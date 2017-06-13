@@ -128,7 +128,7 @@ function style_osm_carto(){
 		cd /usr/local/share/maps/style/openstreetmap-carto-3.0.x/
 		cp project.mml project.mml.BAK
 
-		sed -i '/dbname/s/"gis"/"${OSM_DB}"/g' project.mml #set dbname: "gis" to dbname: "${OSM_DB}
+		sed -i '/dbname/s/"gis"/"'"${OSM_DB}"'"/g' project.mml #set dbname: "gis" to dbname: "${OSM_DB}
 
 		/usr/local/lib/node_modules/carto/bin/carto project.mml >osm-carto.xml
 
