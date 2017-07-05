@@ -10,11 +10,11 @@ NOTE: On Ubuntu 16 uses Postgres-9.6 and Postgis-2.3
 
 Before proceeding, see <a href="opentileserver.org" target="blank"> opentileserver.org </a> for limitations, etc..
 
-Step 1: Get opentileserver.sh script from GitHub
+Step 1: Get opentileserver.sh script from GitHub for Ubuntu 14.04 or get Ubuntu-16.sh for Ubntu 16.04
 
 Step 2: Make it executable:
 
-<code>chmod 755 opentileserver.sh</code>
+<code>chmod 755 opentileserver.sh</code> or <code>chmod 755 Ubuntu-16.sh</code>
 
 Step 3 (for non-Latin alphabet):
 

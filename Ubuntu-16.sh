@@ -193,9 +193,9 @@ if [ ${USE_PG_VERSION} =  '1' ]; then
 		echo "add Postgresql 9.6"
 		echo "$PG_VER"
 
-		#add-apt-repository "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
+		add-apt-repository "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
 
-		#wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+		wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
 	else
 
