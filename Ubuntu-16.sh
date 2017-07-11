@@ -255,7 +255,7 @@ else
 fi
  
 if [ $(psql -Upostgres -c "select datname from pg_database" | grep -m 1 -c ${OSM_DB}) -eq 0 ]; then
-	psql -Upostgres -c "create database ${OSM_DB} owner=${OSM_USER};"
+    psql -Upostgres -c "create database ${OSM_DB} WITH ENCODING 'UTF8' owner=${OSM_USER};"
 fi
  
 psql -Upostgres ${OSM_DB} <<EOF_CMD
